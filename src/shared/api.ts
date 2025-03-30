@@ -115,6 +115,25 @@ export interface PlayQueue {
   currentTrackPosition: number
 }
 
+// Sonos API Interfaces
+export interface SonosDevice {
+  uuid: string
+  name: string
+  roomName: string
+  state: string
+  coordinator: boolean
+}
+
+export interface SonosZone {
+  coordinator: SonosDevice
+  members: SonosDevice[]
+}
+
+export interface SonosSettings {
+  apiUrl: string | null
+  externalUrl: string | null
+}
+
 export class UnsupportedOperationError extends Error { }
 
 export class SubsonicError extends Error {
@@ -172,6 +191,52 @@ export class API {
           const message = subsonicResponse.error?.message || subsonicResponse.status
           throw new SubsonicError(message, code)
         })
+    }
+  }
+
+  // Sonos Integration Methods
+
+  /**
+   * Get all available Sonos devices from node-sonos-http-api
+   */
+  async getSonosDevices(): Promise<SonosZone[]> {
+    const settings = this.getSonosSettings()
+
+    if (!settings.apiUrl) {
+      throw new Error('Sonos API URL not configured')
+    }
+
+    return window
+      .fetch(`${settings.apiUrl}/zones`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`)
+        }
+        return response.json()
+      })
+  }
+
+  /**
+   * Play a track on a Sonos device
+   */
+  async playOnSonosDevice(deviceName: string, track: Track): Promise<Response> {
+    const settings = this.getSonosSettings()
+
+    if (!settings.apiUrl) {
+      throw new Error('Sonos API URL not configured')
+    }
+
+    const streamUrl = track.url || this.getStreamUrl(track.id)
+    const encodedDeviceName = encodeURIComponent(deviceName)
+    const encodedUrl = encodeURIComponent(streamUrl)
+
+    return window.fetch(`${settings.apiUrl}/${encodedDeviceName}/setavtransporturi/${encodedUrl}`)
+  }
+
+  getSonosSettings(): SonosSettings {
+    return {
+      apiUrl: localStorage.getItem('sonos_api_url'),
+      externalUrl: localStorage.getItem('external_url') || this.auth.server,
     }
   }
 

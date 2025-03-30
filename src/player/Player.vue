@@ -91,6 +91,17 @@
                 <Icon icon="repeat" />
               </b-button>
             </div>
+            <div class="m-0 d-none d-md-inline-flex align-items-center">
+  <!-- Bestehende Buttons... -->
+  <b-button title="Repeat"
+            variant="link" class="m-0" :class="{ 'text-primary': repeatActive }"
+            @click="toggleRepeat">
+    <Icon icon="repeat" />
+  </b-button>
+
+  <!-- Neuen SonosButton hier einfügen -->
+  <SonosButton v-if="track" :track="track" />
+</div>
             <OverflowMenu class="d-md-none">
               <div class="d-flex justify-content-between align-items-center px-3 py-1">
                 <span>Volume</span>
@@ -141,6 +152,7 @@
   import IconReplayGainTrack from '@/shared/components/IconReplayGainTrack.vue'
   import IconReplayGainAlbum from '@/shared/components/IconReplayGainAlbum.vue'
   import { usePlayerStore } from '@/player/store'
+  import SonosButton from '@/player/SonosButton.vue'
 
   export default defineComponent({
     components: {
@@ -150,6 +162,7 @@
       IconReplayGain,
       IconReplayGainTrack,
       IconReplayGainAlbum,
+      SonosButton,
     },
     setup() {
       return {
